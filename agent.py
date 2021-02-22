@@ -42,16 +42,18 @@ class Memory:
 class Model(nn.Module):
     def __init__(self, state_size, action_size):
         super(Model, self).__init__()
-        self.lin1 = nn.Linear(state_size, 64)
-        self.lin2 = nn.Linear(32, 16)
-        self.lin3 = nn.Linear(16, 8)
-        self.lin4 = nn.Linear(8, action_size)
+        self.lin1 = nn.Linear(state_size, 128)
+        self.lin2 = nn.Linear(128, 64)
+        self.lin4 = nn.Linear(64, 32)
+        self.lin5 = nn.Linear(32, 8)
+        self.lin6 = nn.Linear(8, action_size)
 
     def forward(self, x):
-        x = torch.sigmoid(self.lin1(x))
-        x = torch.sigmoid(self.lin2(x))
-        x = torch.sigmoid(self.lin3(x))
-        return self.lin4(x)
+        x = torch.relu(self.lin1(x))
+        x = torch.relu(self.lin2(x))
+        x = torch.relu(self.lin4(x))
+        x = torch.relu(self.lin5(x))
+        return self.lin6(x)
 
 
 # used for prediction and learning, optimize attributes
@@ -63,13 +65,13 @@ class Agent:
         self.model = model or Model(state_size, action_size)
         # if model is None and torch.cuda.is_available():
         #     self.model = self.model.cuda()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
         self.memory = Memory(2000)  # capacity of memory
         self.done = 0  # counter for acts
         self.eps_start = 0.999  # act random factor at exploration
         self.eps_end = 0.01  # act random factor at exploitation
-        self.eps_steps = 250  # discount step factor from exploration to exploitation
-        self.batch_size = 128
+        self.eps_steps = 500  # discount step factor from exploration to exploitation (higher=slower)
+        self.batch_size = 64
         self.gamma = 0.95  # how important are future rewards
 
     def predict(self, state):
